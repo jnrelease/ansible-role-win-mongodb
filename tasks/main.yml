@@ -1,0 +1,48 @@
+---
+- name: Check if MongoDB is installed
+  win_service:
+    name: MongoDB
+  register: mongodb_service
+  ignore_errors: true
+
+- name: Install MongoDB
+  win_package:
+    path: 'https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.6-signed.msi'
+    state: present
+    arguments: /l*v mdbinstall.log /qb ADDLOCAL="ServerService"
+  become: true
+  become_method: runas
+  become_user: SYSTEM
+  when: mongodb_service.exists == false
+
+- name: Ensure MongoDB service is runnings
+  win_service:
+    name: MongoDB
+    state: started
+    start_mode: auto
+
+- name: Create MongoDB script file
+  win_copy:
+    content: |
+      use {{ db_name }};
+      db.createUser({
+        user: "{{ db_user }}",
+        pwd: "{{ db_password }}",
+        roles: [{ role: "readWrite", db: "{{ db_name }}" }]
+      });
+      db.getUser("{{ db_user }}");
+    dest: 'C:\temp\mongo_script.js'
+
+- name: Run MongoDB script file
+  win_shell: |
+    {{ mongo_exe }} C:\temp\mongo_script.js
+  register: db_output
+
+# - name: Remove MongoDB script file
+#   win_file:
+#     path: 'C:\temp\mongo_script.js'
+#     state: absent
+
+- name: Print output
+  debug:
+    var: db_output
