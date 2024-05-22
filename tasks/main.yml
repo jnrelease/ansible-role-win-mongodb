@@ -5,9 +5,11 @@
   register: mongodb_service
   ignore_errors: true
 
+ #path: 'https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.6-signed.msi'
+
 - name: Install MongoDB
   win_package:
-    path: 'https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.6-signed.msi'
+    path: '{{ mongodb_package_url }}'
     state: present
     arguments: /l*v mdbinstall.log /qb ADDLOCAL="ServerService"
   become: true
