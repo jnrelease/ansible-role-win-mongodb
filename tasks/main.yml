@@ -37,7 +37,9 @@
 
 - name: Run MongoDB script file
   win_shell: |
-    {{ mongo_exe }} C:\temp\mongo_script.js
+    $mongoExe = "{{ mongo_exe }}"
+    $scriptPath = "C:\temp\mongo_script.js"
+    & "$mongoExe" "$scriptPath"
   register: db_output
 
 # - name: Remove MongoDB script file
