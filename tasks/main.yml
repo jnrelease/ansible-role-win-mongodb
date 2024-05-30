@@ -39,7 +39,8 @@
   win_shell: |
     $mongoExe = "{{ mongo_exe }}"
     $scriptPath = "C:\temp\mongo_script.js"
-    & "$mongoExe" "$scriptPath"
+    $defaultconnectionString = "mongodb://localhost:27017/testdb"
+    & "$mongoExe" "$defaultconnectionString" "$scriptPath"
   register: db_output
 
 # - name: Remove MongoDB script file
