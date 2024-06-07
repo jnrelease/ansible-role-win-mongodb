@@ -77,7 +77,7 @@
 
 - name: Run MongoDB script with mongosh
   win_shell: |
-    $mongoshExe = (Get-Command mongosh).Source
+    $mongoshExe = "C:\\Program Files\\mongosh\\mongosh.exe"
     $scriptPath = "C:\\temp\\mongo_script.js"
     & $mongoshExe $scriptPath
   args:
