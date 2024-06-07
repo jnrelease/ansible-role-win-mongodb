@@ -65,8 +65,9 @@
 - name: Create MongoDB script file
   win_copy:
     content: |
-      db = connect( 'mongodb://localhost:27017/testdb' );
-      use {{ db_name }};
+      db = connect('mongodb://localhost:27017/admin');
+      db = db.getSiblingDB('{{ db_name }}');
+      db.test.insertOne({ created: true }); // This creates the database if it doesn't exist
       db.createUser({
         user: "{{ db_user }}",
         pwd: "{{ db_password }}",
