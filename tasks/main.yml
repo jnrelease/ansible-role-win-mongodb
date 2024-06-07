@@ -17,22 +17,22 @@
   become_user: SYSTEM
   when: mongodb_service.exists == false
 
-# - name: Ensure Chocolatey is installed
-#   win_shell: |
-#     if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
-#       Set-ExecutionPolicy Bypass -Scope Process -Force;
-#       [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-#       iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'));
-#     }
-#   args:
-#     executable: powershell.exe
-#   become: yes
+- name: Check if mongosh is installed
+  win_command: mongosh --version
+  register: mongosh_installed
+  ignore_errors: yes
 
-- name: Ensure mongosh is installed
-  win_chocolatey:
-    name: mongosh
+- name: Download mongosh installer
+  win_get_url:
+    url: "https://downloads.mongodb.com/compass/mongosh-1.10.1-win32-x64.msi"
+    dest: "C:\\temp\\mongosh.msi"
+  when: mongosh_installed.failed
+
+- name: Install mongosh
+  win_package:
+    path: "C:\\temp\\mongosh.msi"
     state: present
-  become: yes
+  when: mongosh_installed.failed
 
 - name: Ensure MongoDB service is runnings
   win_service:
@@ -56,8 +56,9 @@
 - name: Run MongoDB script with mongosh
   win_shell: |
     $mongoshExe = (Get-Command mongosh).Source
+    $connectionString = "mongodb://localhost:27017/testdb"
     $scriptPath = "C:\\temp\\mongo_script.js"
-    & $mongoshExe $scriptPath
+    & $mongoshExe $connectionString $scriptPath
   args:
     executable: powershell.exe
   register: mongo_script_output
