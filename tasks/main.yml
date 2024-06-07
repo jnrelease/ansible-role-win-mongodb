@@ -83,6 +83,8 @@
     & $mongoshExe $scriptPath
   args:
     executable: powershell.exe
+  become_method: runas
+  become_user: SYSTEM
   register: mongo_script_output
 
 - name: Display MongoDB script output
