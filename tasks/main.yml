@@ -34,6 +34,28 @@
     state: present
   when: mongosh_installed.failed
 
+- name: Check if MongoDB Compass is installed
+  win_command: |
+    if (Get-Command "C:\\Program Files\\MongoDB Compass\\MongoDBCompass.exe" -ErrorAction SilentlyContinue) {
+      Write-Output "MongoDB Compass is installed"
+    } else {
+      Write-Error "MongoDB Compass is not installed"
+    }
+  register: compass_installed
+  ignore_errors: yes
+
+- name: Download MongoDB Compass installer
+  win_get_url:
+    url: "https://downloads.mongodb.com/compass/mongodb-compass-1.31.2-win32-x64.msi"
+    dest: "C:\\temp\\mongodb-compass.msi"
+  when: compass_installed.failed
+
+- name: Install MongoDB Compass
+  win_package:
+    path: "C:\\temp\\mongodb-compass.msi"
+    state: present
+  when: compass_installed.failed
+
 - name: Ensure MongoDB service is runnings
   win_service:
     name: MongoDB
