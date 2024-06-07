@@ -78,9 +78,8 @@
 - name: Run MongoDB script with mongosh
   win_shell: |
     $mongoshExe = (Get-Command mongosh).Source
-    $connectionString = "mongodb://localhost:27017/testdb"
     $scriptPath = "C:\\temp\\mongo_script.js"
-    & $mongoshExe $connectionString $scriptPath
+    & $mongoshExe $scriptPath
   args:
     executable: powershell.exe
   register: mongo_script_output
