@@ -18,21 +18,21 @@
   when: mongodb_service.exists == false
 
 - name: Ensure Chocolatey is installed
-      win_shell: |
-        if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
-          Set-ExecutionPolicy Bypass -Scope Process -Force;
-          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'));
-        }
-      args:
-        executable: powershell.exe
-      become: yes
+  win_shell: |
+    if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
+      Set-ExecutionPolicy Bypass -Scope Process -Force;
+      [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+      iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'));
+    }
+  args:
+    executable: powershell.exe
+  become: yes
 
 - name: Ensure mongosh is installed
-      win_chocolatey:
-        name: mongosh
-        state: present
-      become: yes
+  win_chocolatey:
+    name: mongosh
+    state: present
+  become: yes
 
 - name: Ensure MongoDB service is runnings
   win_service:
@@ -54,17 +54,17 @@
     dest: 'C:\temp\mongo_script.js'
 
 - name: Run MongoDB script with mongosh
-      win_shell: |
-        $mongoshExe = (Get-Command mongosh).Source
-        $scriptPath = "C:\\temp\\mongo_script.js"
-        & $mongoshExe $scriptPath
-      args:
-        executable: powershell.exe
-      register: mongo_script_output
+  win_shell: |
+    $mongoshExe = (Get-Command mongosh).Source
+    $scriptPath = "C:\\temp\\mongo_script.js"
+    & $mongoshExe $scriptPath
+  args:
+    executable: powershell.exe
+  register: mongo_script_output
 
 - name: Display MongoDB script output
-      debug:
-        msg: "{{ mongo_script_output.stdout }}"
+  debug:
+    msg: "{{ mongo_script_output.stdout }}"
 
 # - name: Run MongoDB script file
 #   win_shell: |
