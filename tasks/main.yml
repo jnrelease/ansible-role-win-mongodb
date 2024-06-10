@@ -85,6 +85,7 @@
     executable: powershell.exe
   register: mongo_script_output
   timeout: 600
+  ignore_errors: true
 
 - name: Display MongoDB script output
   debug:
