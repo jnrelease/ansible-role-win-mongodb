@@ -78,9 +78,10 @@
 
 - name: Run MongoDB script with mongosh
   win_shell: |
+    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
     $mongoshExe = "C:\\Program Files\\mongosh\\mongosh.exe"
     $scriptPath = "C:\\temp\\mongo_script.js"
-    & $mongoshExe $scriptPath
+    & "$mongoshExe" < "$scriptPath"
   args:
     executable: powershell.exe
   register: mongo_script_output
