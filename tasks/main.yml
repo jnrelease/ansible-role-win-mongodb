@@ -66,6 +66,21 @@
   win_copy:
     content: |
       db = connect('mongodb://localhost:27017/admin');
+      db = db.getSiblingDB('admin');
+
+      // Drop the user if it exists
+      if (!db.getUser('{{ db_user }}')) {
+        // Create the user under admin db
+        db.createUser({
+          user: "{{ db_user }}",
+          pwd: "{{ db_password }}",
+          roles: [{ role: "readWrite", db: "{{ item }}" }]
+        });
+
+        // Retrieve the user
+        db.getUser("{{ db_user }}");
+      }
+
       db = db.getSiblingDB('{{ item }}');
 
       // Drop the user if it exists
@@ -82,16 +97,6 @@
       }else{
         db.test.insertOne({ created: true }); // This creates the database if it doesn't exist
       }
-      
-      // Create the user
-      db.createUser({
-        user: "{{ db_user }}",
-        pwd: "{{ db_password }}",
-        roles: [{ role: "readWrite", db: "{{ item }}" }]
-      });
-
-      // Retrieve the user
-      db.getUser("{{ db_user }}");
     dest: 'C:\temp\mongo_script_{{ item }}.js'
   with_items: "{{ db_names }}"
 
@@ -110,18 +115,18 @@
 - name: Run PowerShell scripts with mongosh for each database
   win_shell: |
     powershell.exe -File C:\temp\run_mongo_psw_script_{{ item }}.ps1
-  register: mongo_script_output
+  register: "{{ item }}_mongo_script_output"
   with_items: "{{ db_names }}"
   timeout: 600
 
 - name: Display MongoDB script output
   debug:
-    msg: "{{ item }} output: {{ mongo_script_output.stdout }}"
+    msg: "{{ item }} output: {{ {{ item }}_mongo_script_output.stdout }}"
   with_items: "{{ db_names }}"
 
 - name: Display MongoDB script errors
   debug:
-    msg: "{{ item }} errors: {{ mongo_script_output.stderr }}"
+    msg: "{{ item }} errors: {{ {{ item }}_mongo_script_output.stderr }}"
   with_items: "{{ db_names }}"
 
 # - name: Run MongoDB script file
