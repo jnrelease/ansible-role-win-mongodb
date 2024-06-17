@@ -123,14 +123,14 @@
 
 - name: Display MongoDB script output
   debug:
-    msg: "{{ item }} output: {{ mongo_script_output.stdout }}"
+    msg: "{{ item }} output: {{ mongo_script_output.results[item]['stdout'] }}"
   with_items: "{{ db_names }}"
   loop_control:
     loop_var: item
 
 - name: Display MongoDB script errors
   debug:
-    msg: "{{ item }} errors: {{ mongo_script_output.stderr }}"
+    msg: "{{ item }} errors: {{ mongo_script_output.results[item]['stderr'] }}"
   with_items: "{{ db_names }}"
   loop_control:
     loop_var: item
