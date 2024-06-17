@@ -62,7 +62,7 @@
     state: started
     start_mode: auto
 
-- name: Create MongoDB script file
+- name: Create MongoDB script files for each database
   win_copy:
     content: |
       db = connect('mongodb://localhost:27017/admin');
@@ -95,33 +95,34 @@
     dest: 'C:\temp\mongo_script_{{ item }}.js'
   with_items: "{{ db_names }}"
 
-- name: Create PowerShell script to run MongoDB script
+- name: Create PowerShell script files to run MongoDB scripts for each database
   win_copy:
     content: |
       Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
       $mongoshExe = "{{ mongosh_path }}"
-      $db_names = @({{ db_names | map('regex_replace', '(.+)', '"$1"') | join(',') }})
-      foreach ($db in $db_names) { 
-        $scriptPath = "C:\\temp\\mongo_script_$db.js"
-        Write-Output "Starting MongoDB script execution for $db"
-        & $mongoshExe $scriptPath
-        Write-Output "Completed MongoDB script execution for $db"
-      }
-    dest: 'C:\temp\run_mongo_psw_script.ps1'
+      $scriptPath = "C:\\temp\\mongo_script_{{ item }}.js"
+      Write-Output "Starting MongoDB script execution for {{ item }}"
+      & $mongoshExe $scriptPath
+      Write-Output "Completed MongoDB script execution for {{ item }}"
+    dest: 'C:\temp\run_mongo_psw_script_{{ item }}.ps1'
+  with_items: "{{ db_names }}"
 
-- name: Run MongoDB script with mongosh
+- name: Run PowerShell scripts with mongosh for each database
   win_shell: |
-    powershell.exe -File C:\temp\run_mongo_psw_script.ps1
+    powershell.exe -File C:\temp\run_mongo_psw_script_{{ item }}.ps1
   register: mongo_script_output
+  with_items: "{{ db_names }}"
   timeout: 600
 
 - name: Display MongoDB script output
   debug:
-    msg: "{{ mongo_script_output.stdout }}"
+    msg: "{{ item }} output: {{ mongo_script_output.stdout }}"
+  with_items: "{{ db_names }}"
 
 - name: Display MongoDB script errors
   debug:
-    msg: "{{ mongo_script_output.stderr }}"
+    msg: "{{ item }} errors: {{ mongo_script_output.stderr }}"
+  with_items: "{{ db_names }}"
 
 # - name: Run MongoDB script file
 #   win_shell: |
