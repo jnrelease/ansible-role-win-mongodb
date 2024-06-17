@@ -118,22 +118,22 @@
   register: mongo_script_output
   with_items: "{{ db_names }}"
   loop_control:
-    loop_var: db_name
+    loop_var: item
   timeout: 600
 
 - name: Display MongoDB script output
   debug:
-    msg: "{{ db_name }} output: {{ mongo_script_output.stdout }}"
+    msg: "{{ item }} output: {{ mongo_script_output.stdout }}"
   with_items: "{{ db_names }}"
   loop_control:
-    loop_var: db_name
+    loop_var: item
 
 - name: Display MongoDB script errors
   debug:
-    msg: "{{ db_name }} errors: {{ mongo_script_output.stderr }}"
+    msg: "{{ item }} errors: {{ mongo_script_output.stderr }}"
   with_items: "{{ db_names }}"
   loop_control:
-    loop_var: db_name
+    loop_var: item
 
 # - name: Run MongoDB script file
 #   win_shell: |
