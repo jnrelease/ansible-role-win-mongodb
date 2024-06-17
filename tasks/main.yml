@@ -76,17 +76,22 @@
       db.getUser("{{ db_user }}");
     dest: 'C:\temp\mongo_script.js'
 
+- name: Create PowerShell script to run MongoDB script
+  win_copy:
+    content: |
+      Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+      $mongoshExe = "{{ mongosh_path }}"
+      $scriptPath = "C:\\temp\\mongo_script.js"
+      Write-Output "Starting MongoDB script execution"
+      & $mongoshExe $scriptPath
+      Write-Output "Completed MongoDB script execution"
+    dest: 'C:\temp\run_mongo_psw_script.ps1'
+
 - name: Run MongoDB script with mongosh
   win_shell: |
-    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-    $mongoshExe = "C:\\Program Files\\mongosh\\mongosh.exe"
-    $scriptPath = "C:\\temp\\mongo_script.js"
-    & "$mongoshExe" < "$scriptPath"
-  args:
-    executable: powershell.exe
+    powershell.exe -File C:\temp\run_mongo_psw_script.ps1
   register: mongo_script_output
   timeout: 600
-  ignore_errors: true
 
 - name: Display MongoDB script output
   debug:
