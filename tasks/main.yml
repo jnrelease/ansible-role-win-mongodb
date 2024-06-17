@@ -66,25 +66,47 @@
   win_copy:
     content: |
       db = connect('mongodb://localhost:27017/admin');
-      db = db.getSiblingDB('{{ db_name }}');
-      db.test.insertOne({ created: true }); // This creates the database if it doesn't exist
+      db = db.getSiblingDB('{{ item }}');
+
+      // Drop the user if it exists
+      if (db.getUser('{{ db_user }}')) {
+        db.dropUser('{{ db_user }}');
+      }
+
+      // Drop the database if it exists
+      db.dropDatabase();
+
+      // Re-create the database by inserting a document
+      if('{{ item }}' == 'AlchemyIntegrationService'){
+        db.BicDirectory.insertOne({ created: true }); // This creates the database if it doesn't exist
+      }else{
+        db.test.insertOne({ created: true }); // This creates the database if it doesn't exist
+      }
+      
+      // Create the user
       db.createUser({
         user: "{{ db_user }}",
         pwd: "{{ db_password }}",
-        roles: [{ role: "readWrite", db: "{{ db_name }}" }]
+        roles: [{ role: "readWrite", db: "{{ item }}" }]
       });
+
+      // Retrieve the user
       db.getUser("{{ db_user }}");
-    dest: 'C:\temp\mongo_script.js'
+    dest: 'C:\temp\mongo_script_{{ item }}.js'
+  with_items: "{{ db_names }}"
 
 - name: Create PowerShell script to run MongoDB script
   win_copy:
     content: |
       Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
       $mongoshExe = "{{ mongosh_path }}"
-      $scriptPath = "C:\\temp\\mongo_script.js"
-      Write-Output "Starting MongoDB script execution"
-      & $mongoshExe $scriptPath
-      Write-Output "Completed MongoDB script execution"
+      $db_names = @({{ db_names | map('regex_replace', '(.+)', '"$1"') | join(',') }})
+      foreach ($db in $db_names) { 
+        $scriptPath = "C:\\temp\\mongo_script_$db.js"
+        Write-Output "Starting MongoDB script execution for $db"
+        & $mongoshExe $scriptPath
+        Write-Output "Completed MongoDB script execution for $db"
+      }
     dest: 'C:\temp\run_mongo_psw_script.ps1'
 
 - name: Run MongoDB script with mongosh
