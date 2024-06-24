@@ -115,7 +115,7 @@
 - name: Run PowerShell scripts with mongosh for each database
   win_shell: |
     powershell.exe -File C:\temp\run_mongo_psw_script_{{ item }}.ps1
-  register: mongo_script_output
+  register: mongo_script_outputs
   with_items: "{{ db_names }}"
   loop_control:
     loop_var: item
